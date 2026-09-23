@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tomorrowland Winter 2027 — planejador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E7ECEF; --card:#FFFFFF; --ink:#13202B; --ink-2:#4B5C69; --line:#C9D4DB;
+  --glacier:#2F7FA6; --piste-green:#2E8B57; --piste-blue:#2F7FA6; --piste-red:#C8253A; --piste-black:#1C2126;
+  --lift:#E8A23C;
+  --c-transporte:#2F7FA6; --c-hospedagem:#1C2126; --c-atividades:#2E8B57; --c-alimentacao:#E8A23C; --c-outros:#8A6FA8; --c-reserva:#9AA9B3;
+  --shadow:0 1px 0 rgba(19,32,43,.06);
+}
+:root:not([data-theme="light"]){ }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1A22; --card:#16242E; --ink:#E6EDF2; --ink-2:#9BB0BE; --line:#2A3C49;
+    --shadow:0 1px 0 rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1A22; --card:#16242E; --ink:#E6EDF2; --ink-2:#9BB0BE; --line:#2A3C49;
+  --shadow:0 1px 0 rgba(0,0,0,.4);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.num{font-family:"Familjen Grotesk","Public Sans",sans-serif}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 72px}
+
+/* hero */
+header{padding:44px 0 26px;border-bottom:2px solid var(--ink)}
+.slope{display:flex;gap:6px;margin-bottom:22px}
+.slope i{height:5px;border-radius:2px;display:block}
+h1{font-size:clamp(34px,6vw,60px);line-height:.98;margin:0 0 10px;font-weight:700;letter-spacing:-.02em}
+.dates{font-size:clamp(15px,2vw,18px);color:var(--ink-2);margin:0;max-width:62ch}
+.hero-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:28px;align-items:end;margin-top:26px}
+.bigtotal{text-align:right}
+.bigtotal .v{font-family:"Familjen Grotesk";font-weight:700;font-size:clamp(38px,7vw,64px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.bigtotal .l{font-size:13px;color:var(--ink-2);display:block;margin-top:6px}
+.bigtotal .sub{font-size:14px;color:var(--ink-2);margin-top:4px}
+
+.countdown{margin-top:26px;border:1px solid var(--piste-red);border-left-width:5px;background:var(--card);padding:14px 16px;display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+.countdown b{color:var(--piste-red)}
+
+/* layout */
+main{display:grid;grid-template-columns:330px 1fr;gap:34px;margin-top:34px;align-items:start}
+.controls{position:sticky;top:18px;background:var(--card);border:1px solid var(--line);padding:20px;box-shadow:var(--shadow)}
+.controls h2,.panel h2{font-size:13px;font-weight:500;letter-spacing:.04em;color:var(--ink-2);margin:0 0 16px}
+.field{margin-bottom:20px}
+.field>label{display:flex;justify-content:space-between;align-items:baseline;font-size:14px;font-weight:500;margin-bottom:7px;gap:10px}
+.field .val{font-family:"Familjen Grotesk";font-weight:700;font-variant-numeric:tabular-nums;color:var(--glacier)}
+input[type=range]{width:100%;accent-color:var(--glacier);height:22px}
+.seg{display:flex;border:1px solid var(--line);overflow:hidden}
+.seg button{flex:1;padding:9px 4px;background:transparent;border:0;border-right:1px solid var(--line);font:inherit;font-size:13px;color:var(--ink-2);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);font-weight:600}
+select,input[type=number]{width:100%;padding:9px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:14px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.reset{background:none;border:0;color:var(--ink-2);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;padding:0}
+
+/* panels */
+.panel{background:var(--card);border:1px solid var(--line);padding:22px;margin-bottom:22px;box-shadow:var(--shadow)}
+.panel h3{margin:0 0 4px;font-size:21px;font-weight:700;letter-spacing:-.01em}
+.panel p.lead{margin:0 0 18px;color:var(--ink-2);font-size:14px;max-width:70ch}
+
+/* stacked bar */
+.bar{display:flex;height:34px;overflow:hidden;margin:6px 0 16px}
+.bar span{display:block;transition:width .35s cubic-bezier(.2,.7,.3,1)}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:2px 20px}
+.legend div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.legend .k{display:flex;align-items:center;gap:8px}
+.legend .k i{width:10px;height:10px;flex:0 0 10px}
+.legend .n{font-family:"Familjen Grotesk";font-weight:700;font-variant-numeric:tabular-nums}
+
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:right;padding:10px 8px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:12px;font-weight:600;color:var(--ink-2);border-bottom:1.5px solid var(--ink)}
+td.n{font-family:"Familjen Grotesk";font-weight:700;font-variant-numeric:tabular-nums}
+tr.win td{background:color-mix(in srgb,var(--piste-green) 12%,transparent)}
+.tag{font-size:11px;font-weight:600;padding:2px 7px;border:1px solid currentColor;margin-left:8px;white-space:nowrap}
+.tag.best{color:var(--piste-green)}
+
+/* levers */
+.levers{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px}
+.lever{border:1px solid var(--line);border-top:4px solid var(--piste-green);padding:14px}
+.lever .save{font-family:"Familjen Grotesk";font-weight:700;font-size:26px;color:var(--piste-green);font-variant-numeric:tabular-nums}
+.lever p{margin:4px 0 0;font-size:13px;color:var(--ink-2)}
+
+/* timeline */
+.trip{list-style:none;margin:0;padding:0}
+.trip li{display:grid;grid-template-columns:96px 22px 1fr;gap:12px;align-items:start;padding:9px 0}
+.trip .d{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums;padding-top:2px}
+.trip .rail{position:relative;height:100%;display:flex;justify-content:center}
+.trip .rail::before{content:"";position:absolute;top:0;bottom:-18px;width:2px;background:var(--line)}
+.trip li:last-child .rail::before{display:none}
+.trip .dot{width:11px;height:11px;border-radius:50%;background:var(--card);border:2px solid var(--glacier);margin-top:5px;position:relative;z-index:1}
+.trip li[data-phase="festa"] .dot{background:var(--piste-red);border-color:var(--piste-red)}
+.trip li[data-phase="pos"] .dot{border-color:var(--piste-green)}
+.trip .t{font-size:14px}
+.trip .t b{font-weight:600}
+.trip .t span{color:var(--ink-2)}
+
+.note{font-size:13px;color:var(--ink-2);border-left:3px solid var(--lift);padding-left:12px;margin-top:16px}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2)}
+
+@media (max-width:900px){
+  main{grid-template-columns:1fr;gap:22px}
+  .controls{position:static}
+  .hero-grid{grid-template-columns:1fr;gap:16px}
+  .bigtotal{text-align:left}
+  .trip li{grid-template-columns:80px 20px 1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="slope" aria-hidden="true">
+    <i style="background:var(--piste-green);width:14%"></i>
+    <i style="background:var(--piste-blue);width:26%"></i>
+    <i style="background:var(--piste-red);width:40%"></i>
+    <i style="background:var(--piste-black);width:20%"></i>
+  </div>
+  <h1>Genebra, Alpe d'Huez<br>e o que vier depois</h1>
+  <div class="hero-grid">
+    <p class="dates">Tomorrowland Winter 2027 acontece de 20 a 27 de março, de novo em Alpe d'Huez. Este é o painel para fechar uma viagem curta: dois dias de voo, a semana de festa e dois ou três dias conhecendo a região antes de voltar.</p>
+    <div class="bigtotal">
+      <span class="v num" id="total">R$ 0</span>
+      <span class="l">total para 2 pessoas</span>
+      <div class="sub num" id="perperson">—</div>
+    </div>
+  </div>
+  <div class="countdown">
+    <span><b id="cdays">—</b> para a venda do pacote de 7 dias</span>
+    <span>3 de outubro de 2026, 10h de Brasília · o de 7 dias esgota primeiro</span>
+  </div>
+</header>
+
+<main>
+  <section class="controls" aria-label="Controles do orçamento">
+    <h2>Ajuste o cenário</h2>
+
+    <div class="field">
+      <label for="pos">Depois do festival <span class="val" id="posv"></span></label>
+      <select id="pos">
+        <option value="annecy">Annecy e Chamonix — Alpes franceses</option>
+        <option value="lemano">Lago Léman — Genebra, Lausanne, Montreux</option>
+        <option value="zermatt">Zermatt — Matterhorn</option>
+        <option value="lyon">Lyon</option>
+        <option value="nada">Voltar direto para casa</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="dpre">Dias antes da festa <span class="val num" id="dprev">0</span></label>
+      <input type="range" id="dpre" min="0" max="3" step="1" value="0">
+    </div>
+
+    <div class="field">
+      <label for="dpos">Dias depois da festa <span class="val num" id="dposv">3</span></label>
+      <input type="range" id="dpos" min="0" max="7" step="1" value="3">
+    </div>
+
+    <div class="field">
+      <label>Carro</label>
+      <div class="seg" id="carro" role="group">
+        <button data-v="sem" aria-pressed="true">Sem carro</button>
+        <button data-v="alpes" aria-pressed="false">Só nos Alpes</button>
+        <button data-v="tudo" aria-pressed="false">Viagem toda</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Quem divide carro e apartamento</label>
+      <div class="seg" id="grupo" role="group">
+        <button data-v="2" aria-pressed="true">Só nós dois</button>
+        <button data-v="3" aria-pressed="false">Com um amigo</button>
+      </div>
+    </div>
+
+    <div class="field" id="fcarroc">
+      <label for="carroc">Carro — locação e seguro (€) <span class="val num" id="carrocv">505</span></label>
+      <input type="range" id="carroc" min="350" max="1500" step="5" value="505">
+    </div>
+
+    <div class="field">
+      <label for="hotel">Hotel por noite fora da festa (R$) <span class="val num" id="hotelv">600</span></label>
+      <input type="range" id="hotel" min="250" max="1400" step="25" value="600">
+    </div>
+
+    <div class="field">
+      <label for="diariaF">Gasto por pessoa/dia na festa (€) <span class="val num" id="diaFv">45</span></label>
+      <input type="range" id="diariaF" min="15" max="120" step="5" value="45">
+    </div>
+
+    <div class="field">
+      <label for="diariaR">Gasto por pessoa/dia na região (€) <span class="val num" id="diaRv">80</span></label>
+      <input type="range" id="diariaR" min="25" max="140" step="5" value="80">
+    </div>
+
+    <div class="field">
+      <label for="pacote">Pacote Tomorrowland por pessoa (€) <span class="val num" id="pacv">1.400</span></label>
+      <input type="range" id="pacote" min="900" max="2600" step="50" value="1400">
+    </div>
+
+    <div class="field">
+      <label for="aereo">Passagem aérea por pessoa (R$) <span class="val num" id="aerv">5.500</span></label>
+      <input type="range" id="aereo" min="3500" max="12000" step="250" value="5500">
+    </div>
+
+    <div class="field">
+      <label>Câmbio de planejamento</label>
+      <div class="two">
+        <div><input type="number" id="eur" value="6.20" step="0.05" aria-label="Euro em reais"><small style="color:var(--ink-2);font-size:12px">euro</small></div>
+        <div><input type="number" id="chf" value="6.60" step="0.05" aria-label="Franco em reais"><small style="color:var(--ink-2);font-size:12px">franco</small></div>
+      </div>
+    </div>
+
+    <button class="reset" id="reset">Voltar ao cenário inicial</button>
+  </section>
+
+  <div>
+    <section class="panel">
+      <h3>Para onde vai o dinheiro</h3>
+      <p class="lead">Barra na proporção do gasto. Em 2026 vocês gastaram <b class="num">R$ 53.054</b> numa viagem bem mais longa, com o grupo dividindo carro, transfer e parte da hospedagem.</p>
+      <div class="bar" id="bar" role="img" aria-label="Distribuição do orçamento por categoria"></div>
+      <div class="legend" id="legend"></div>
+      <div class="note" id="perday"></div>
+    </section>
+
+    <section class="panel">
+      <h3>Por que fica caro</h3>
+      <p class="lead">A maior parte do orçamento é decidida antes de vocês escolherem qualquer coisa. Mexer nos dias e no ritmo só afeta a fatia menor.</p>
+      <div class="bar" id="bar2" role="img" aria-label="Custos fixos contra custos que dependem de escolha"></div>
+      <div class="legend" id="legend2"></div>
+      <div class="note" id="whynote"></div>
+    </section>
+
+    <section class="panel">
+      <h3>Carro ou transporte público</h3>
+      <p class="lead">Só o custo de deslocamento, no cenário que você montou ao lado. O resto da viagem não muda.</p>
+      <table>
+        <thead><tr><th>Opção</th><th>Custo</th><th>Diferença</th></tr></thead>
+        <tbody id="cartable"></tbody>
+      </table>
+      <div class="note" id="carnote"></div>
+    </section>
+
+    <section class="panel">
+      <h3>O que mexe mais no total</h3>
+      <p class="lead">Quanto cada mudança economiza a partir do cenário atual.</p>
+      <div class="levers" id="levers"></div>
+    </section>
+
+    <section class="panel">
+      <h3>Roteiro</h3>
+      <p class="lead" id="triplead"></p>
+      <ul class="trip" id="trip"></ul>
+    </section>
+  </div>
+</main>
+
+<footer>
+  Datas confirmadas pelo Tomorrowland Winter: 20 a 27 de março de 2027, Alpe d'Huez. Venda dos pacotes de 7 dias em 3 de outubro de 2026 (15h CEST) e dos de 4 dias e ingressos avulsos em 10 de outubro. Preços de referência: transfer compartilhado Genebra–Alpe d'Huez a partir de € 40 por trecho, trem Genebra–Annecy cerca de € 15 por trecho. Câmbio e hospedagem são estimativas — ajuste conforme cotar.
+</footer>
+</div>
+
+<script>
+const fmt = n => "R$ " + Math.round(n).toLocaleString("pt-BR");
+const fmt0 = n => Math.round(n).toLocaleString("pt-BR");
+
+const POS = {
+  lemano:  {nome:"Lago Léman", dias:3, hosp:160, mH:"chf", transp:150, mT:"chf", diaria:[75,110,160], mD:"chf", passeios:170, mPa:"chf",
+            texto:"Genebra, Lausanne e Montreux num raio de uma hora de trem. Castelo de Chillon e os vinhedos de Lavaux."},
+  annecy:  {nome:"Annecy e Chamonix", dias:3, hosp:130, mH:"eur", transp:70, mT:"eur", diaria:[55,85,125], mD:"eur", passeios:160, mPa:"eur",
+            texto:"O trecho mais barato e o mais perto do resort. Annecy fica a 1h de Genebra e Chamonix a 1h de Annecy."},
+  lyon:    {nome:"Lyon", dias:3, hosp:115, mH:"eur", transp:60, mT:"eur", diaria:[55,85,125], mD:"eur", passeios:100, mPa:"eur",
+            texto:"Descida direta de Grenoble. Vocês já conhecem, então só vale se quiserem repetir a comida."},
+  zermatt: {nome:"Zermatt", dias:3, hosp:210, mH:"chf", transp:170, mT:"chf", diaria:[80,120,175], mD:"chf", passeios:210, mPa:"chf",
+            texto:"Matterhorn e vila sem carros, mas são 3h30 de trem desde Genebra e a diária mais cara da lista."},
+  nada:    {nome:"Direto para casa", dias:0, hosp:0, mH:"eur", transp:0, mT:"eur", diaria:[0,0,0], mD:"eur", passeios:0, mPa:"eur",
+            texto:"Volta logo depois do festival."}
+};
+const DIARIA_PRE   = [55,80,120];
+const DIARIA_FESTA = [70,105,150];
+const NIVEIS = ["Econômico","Médio","Confortável"];
+
+const DEFAULTS = {pos:"annecy", dpre:0, dpos:3, carro:"sem", diariaF:45, diariaR:80, hotel:600, carroC:505, grupo:2, pacote:1400, aereo:5500, eur:6.20, chf:6.60};
+let S = {...DEFAULTS};
+
+function calc(s, override={}){
+  const st = {...s, ...override};
+  const P = POS[st.pos], E = st.eur, C = st.chf;
+  const cur = m => m === "chf" ? C : E;
+  const pax = 2;
+  const dFesta = 8;
+  const dCarro = st.carro === "alpes" ? dFesta : (st.carro === "tudo" ? st.dpre + dFesta + st.dpos : 0);
+  const semCarro = st.carro === "sem";
+  const usaTrem = st.carro !== "tudo" && st.dpos > 0;
+
+  const cat = {Transporte:0, Hospedagem:0, Atividades:0, Alimentação:0, Outros:0};
+
+  // transporte
+  cat.Transporte += pax * st.aereo;
+  if (semCarro){
+    cat.Transporte += pax * 90 * E;                                        // transfer compartilhado, ida e volta
+    if (st.dpos > 0) cat.Transporte += pax * P.transp * cur(P.mT) * Math.min(1.8, Math.max(.7, st.dpos / P.dias));
+    if (st.dpre > 0) cat.Transporte += pax * 40 * E;
+  } else {
+    const share = pax / st.grupo;                                          // a parte do casal quando um amigo entra
+    cat.Transporte += st.carroC * E * share;                               // pacote fechado do carro
+    cat.Transporte += (130 * E + 50 * E) * share;                          // combustível, pedágio e folga para multa
+    if (st.carro === "tudo") cat.Transporte += ((st.dpos + st.dpre) * 70 * E + (st.dpos > 0 ? 120 * E : 0)) * share;
+  }
+
+  // hospedagem e ingresso
+  cat.Hospedagem += pax * st.pacote * E;
+  cat.Hospedagem += (st.dpre + st.dpos) * st.hotel;                        // hotel em reais, fora da semana da festa
+
+  // atividades
+  cat.Atividades += pax * 145 * E;                                    // aluguel de equipamento, igual a 2026
+  if (st.dpre > 0) cat.Atividades += pax * 75 * E;
+  if (st.dpos > 0) cat.Atividades += pax * P.passeios * cur(P.mPa) * Math.min(1, st.dpos / P.dias);
+
+  // alimentação
+  const fatorPos = P.mD === "chf" ? 1.3 : 1;                               // Suíça custa ~30% mais
+  cat.Alimentação += dFesta * st.diariaF * pax * E + st.dpre * st.diariaR * pax * E;
+  if (st.dpos > 0) cat.Alimentação += st.dpos * st.diariaR * pax * fatorPos * E;
+
+  // outros
+  cat.Outros += pax * 200;                                            // eSIM (seguro e bagagem já resolvidos)
+
+  const acesso = semCarro ? pax * 90 * E : st.carroC * E * (pax / st.grupo);
+  const fixo = pax * st.aereo + pax * st.pacote * E + cat.Outros + pax * 145 * E + acesso;
+  const sub = Object.values(cat).reduce((a,b)=>a+b,0);
+  const reserva = sub * 0.08;
+  const total = sub + reserva;
+  const dias = 1 + dFesta + st.dpre + st.dpos + 1;
+  return {cat, reserva, total, dias, dCarro, semCarro, usaTrem, P, dFesta, fixo, escolha: sub - fixo};
+}
+
+function custoDeslocamento(s, carro){
+  return calc(s, {carro}).cat.Transporte - s.aereo * 2;
+}
+
+function render(){
+  const r = calc(S);
+  document.getElementById("total").textContent = fmt(r.total);
+  document.getElementById("perperson").textContent =
+    fmt(r.total/2) + " por pessoa · " + r.dias + " dias de viagem";
+
+  // barra + legenda
+  const cores = {Transporte:"--c-transporte",Hospedagem:"--c-hospedagem",Atividades:"--c-atividades","Alimentação":"--c-alimentacao",Outros:"--c-outros"};
+  const itens = Object.entries(r.cat).concat([["Reserva de 8%", r.reserva]]);
+  document.getElementById("bar").innerHTML = itens.map(([k,v])=>{
+    const cor = k==="Reserva de 8%" ? "--c-reserva" : cores[k];
+    return `<span style="width:${(v/r.total*100).toFixed(2)}%;background:var(${cor})" title="${k}"></span>`;
+  }).join("");
+  document.getElementById("legend").innerHTML = itens.map(([k,v])=>{
+    const cor = k==="Reserva de 8%" ? "--c-reserva" : cores[k];
+    return `<div><span class="k"><i style="background:var(${cor})"></i>${k}</span><span class="n">${fmt(v)}</span></div>`;
+  }).join("");
+
+  const porDia = r.total / r.dias;
+  document.getElementById("perday").textContent =
+    `Dá ${fmt(porDia)} por dia para o casal, com € ${fmt0(S.diariaF)} por pessoa na festa e € ${fmt0(S.diariaR)} na região. ` +
+    `O pacote do festival sozinho é ${fmt(S.pacote*2*S.eur)}, ou ${Math.round(S.pacote*2*S.eur/r.total*100)}% do total.`;
+
+  // fixo x escolha
+  const itens2 = [["Pacote do festival", S.pacote*2*S.eur, "--c-hospedagem"],
+                  ["Passagem aérea", S.aereo*2, "--c-transporte"],
+                  ["Equipamento, eSIM e shuttle", r.fixo - S.pacote*2*S.eur - S.aereo*2, "--c-outros"],
+                  ["O que depende das suas escolhas", r.escolha, "--c-atividades"],
+                  ["Reserva de 8%", r.reserva, "--c-reserva"]];
+  document.getElementById("bar2").innerHTML = itens2.map(([k,v,c])=>
+    `<span style="width:${(v/r.total*100).toFixed(2)}%;background:var(${c})" title="${k}"></span>`).join("");
+  document.getElementById("legend2").innerHTML = itens2.map(([k,v,c])=>
+    `<div><span class="k"><i style="background:var(${c})"></i>${k}</span><span class="n">${fmt(v)}</span></div>`).join("");
+  document.getElementById("whynote").textContent =
+    `Pacote e passagem sozinhos são ${Math.round((S.pacote*2*S.eur + S.aereo*2)/r.total*100)}% do total, e nenhum dos dois você controla. ` +
+    `A comparação com 2026 engana: aquela planilha não tinha ingresso do festival, seguro, bagagem extra nem reserva para imprevistos — ` +
+    `e o pacote de lá custou € 1.143 por pessoa contra € ${fmt0(S.pacote)} agora.`;
+
+  // carro
+  const opts = [["sem","Sem carro"],["alpes","Carro só nos Alpes"],["tudo","Carro a viagem toda"]];
+  const custos = opts.map(([v,n])=>[n, custoDeslocamento(S,v), v]);
+  const min = Math.min(...custos.map(c=>c[1]));
+  document.getElementById("cartable").innerHTML = custos.map(([n,c,v])=>
+    `<tr class="${c===min?"win":""}">
+       <td>${n}${c===min?'<span class="tag best">mais barato</span>':""}${v===S.carro?'<span class="tag">seu cenário</span>':""}</td>
+       <td class="n">${fmt(c)}</td>
+       <td class="n" style="color:var(--ink-2)">${c===min?"—":"+ "+fmt(c-min)}</td>
+     </tr>`).join("");
+
+  const notas = {
+    annecy:"Aqui o carro é a única opção que ganha alguma coisa: Annecy e Chamonix ficam no caminho de volta a Genebra e dão para fazer com calma.",
+    lemano:"Trecho todo urbano e colado no trem — carro só custaria estacionamento.",
+    zermatt:"Zermatt não aceita carro: teria que largar em Täsch e pagar diária de garagem.",
+    lyon:"Trem de Grenoble a Lyon leva pouco mais de uma hora e custa uma fração do aluguel.",
+    nada:"Sem trecho depois do festival, o carro serviria só para a subida até o resort."
+  };
+  document.getElementById("carnote").textContent =
+    notas[S.pos] + " O shuttle de Genebra leva cerca de 2h30 e já inclui a bagagem de ski.";
+
+  // alavancas
+  const cenarios = [
+    {t:"Gastar € 30 por dia na festa", v:calc(S,{diariaF:30}).total, cond:S.diariaF>30, d:"Foi o padrão real de 2026 no cartão: mercado e almoço de pista."},
+    {t:"Gastar € 60 por dia na região", v:calc(S,{diariaR:60}).total, cond:S.diariaR>60, d:"Menos restaurante e mais padaria e mercado."},
+    {t:"Um dia a menos depois da festa", v:calc(S,{dpos:Math.max(0,S.dpos-1)}).total, cond:S.dpos>=1, d:"Corta hotel, comida e passeios de uma vez."},
+    {t:"Hotel R$ 150 mais barato por noite", v:calc(S,{hotel:Math.max(250,S.hotel-150)}).total, cond:S.dpos+S.dpre>0, d:"Apart-hotel ou um bairro fora do centro de Genebra."},
+    {t:"Pacote a € 1.150 no apartamento de três", v:calc(S,{pacote:1150}).total, cond:S.pacote>1150, d:"Preço por pessoa cai quando o apartamento é dividido com um amigo."},
+    {t:"Trocar para Annecy e Chamonix", v:calc(S,{pos:"annecy"}).total, cond:S.pos!=="annecy"&&S.pos!=="nada", d:"Mesma montanha, sem o preço suíço."},
+    {t:"Chegar sem dias extras antes", v:calc(S,{dpre:0}).total, cond:S.dpre>0, d:"Vai direto do aeroporto para o resort."},
+    {t:"Deixar o carro de fora", v:calc(S,{carro:"sem"}).total, cond:S.carro!=="sem", d:"Shuttle e trem no lugar do aluguel."},
+    {t:"Passagem R$ 1.000 mais barata", v:calc(S,{aereo:Math.max(0,S.aereo-1000)}).total, cond:true, d:"Vale caçar promoção de outubro a dezembro."}
+  ];
+  const base = calc(S).total;
+  document.getElementById("levers").innerHTML = cenarios
+    .filter(c=>c.cond && base - c.v > 200)
+    .sort((a,b)=>a.v-b.v)
+    .slice(0,4)
+    .map(c=>`<div class="lever"><div class="save">− ${fmt0(base-c.v)}</div><b>${c.t}</b><p>${c.d}</p></div>`).join("")
+    || `<div class="lever" style="border-top-color:var(--line)"><b>Cenário já está enxuto</b><p>Nenhuma mudança isolada economiza mais de R$ 200 a partir daqui.</p></div>`;
+
+  document.getElementById("fcarroc").style.display = S.carro === "sem" ? "none" : "block";
+  renderTrip();
+  save();
+}
+
+function renderTrip(){
+  const P = POS[S.pos];
+  const start = new Date(2027, 2, 20 - S.dpre - 1); // dia do embarque
+  const dd = d => d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"});
+  const items = [];
+  let d = new Date(start);
+  const push = (fase, titulo, detalhe) => {
+    items.push({data:dd(d), fase, titulo, detalhe});
+    d = new Date(d.getTime() + 86400000);
+  };
+  push("pre","Embarque no Brasil","Voo noturno com destino a Genebra");
+  const preNomes = ["Annecy — cidade velha, canais e o lago","Bate-volta a Chamonix, Aiguille du Midi","Genebra — jato d'água e Carouge","Dia livre no lago","Montanha ou descanso"];
+  for (let i=0;i<S.dpre;i++) push("pre", preNomes[i] || "Dia livre nos Alpes franceses", "Base na França, antes de subir a serra");
+  push("festa","Subida para Alpe d'Huez", S.carro==="sem" ? "Shuttle de Genebra, cerca de 2h30" : "Estrada até o resort, com corrente na mala");
+  const festa = ["Primeiro dia de pista e palcos na montanha","Ski de manhã, festival à tarde","Sarenne, a pista de 16 km","Pico Blanc, 3.330 metros","Ski e MainStage","Último dia de festival"];
+  festa.forEach(t => push("festa", t, "Tomorrowland Winter"));
+  if (S.dpos > 0){
+    const roteiros = {
+      annecy:["Descida até Annecy, cidade velha e canais","Lago de Annecy, bicicleta na orla ou barco","Chamonix, Aiguille du Midi e Mer de Glace","Dia extra em Chamonix ou Annecy","Volta tranquila para Genebra","Dia livre","Dia livre"],
+      lemano:["Trem até Montreux, castelo de Chillon","Vinhedos de Lavaux e Lausanne","Genebra, jato d'água e Carouge","Dia extra no Léman","Bate-volta a Gruyères","Dia livre","Dia livre"],
+      zermatt:["Trem até Zermatt via Visp","Gornergrat e a vista do Matterhorn","Descida para Genebra com parada em Montreux","Dia extra em Zermatt","Dia livre","Dia livre","Dia livre"],
+      lyon:["Trem de Grenoble até Lyon","Vieux Lyon, Fourvière e os bouchons","Mercado Halles Paul Bocuse e Croix-Rousse","Dia livre em Lyon","Dia livre","Dia livre","Dia livre"]
+    };
+    const lista = roteiros[S.pos] || [];
+    for (let i=0;i<S.dpos;i++) push("pos", lista[i] || "Dia livre no roteiro", P.nome);
+  }
+  push("pos","Voo de volta ao Brasil","Chegada no dia seguinte");
+
+  document.getElementById("trip").innerHTML = items.map(i =>
+    `<li data-phase="${i.fase}"><span class="d">${i.data}</span><span class="rail"><span class="dot"></span></span>
+     <span class="t"><b>${i.titulo}</b><br><span>${i.detalhe}</span></span></li>`).join("");
+  document.getElementById("triplead").textContent =
+    `${items.length} dias no total. ${S.dpos>0 ? P.texto : "Sem trecho depois do festival."}`;
+}
+
+// ---- controles
+function bindRange(id, key, out, f = v=>v){
+  const el = document.getElementById(id);
+  el.addEventListener("input", () => {
+    S[key] = +el.value;
+    document.getElementById(out).textContent = f(+el.value);
+    render();
+  });
+}
+bindRange("dpre","dpre","dprev");
+bindRange("dpos","dpos","dposv");
+bindRange("pacote","pacote","pacv", v=>fmt0(v));
+bindRange("aereo","aereo","aerv", v=>fmt0(v));
+bindRange("hotel","hotel","hotelv", v=>fmt0(v));
+bindRange("diariaF","diariaF","diaFv", v=>fmt0(v));
+bindRange("diariaR","diariaR","diaRv", v=>fmt0(v));
+bindRange("carroc","carroC","carrocv", v=>fmt0(v));
+
+document.getElementById("pos").addEventListener("change", e => {
+  S.pos = e.target.value;
+  const p = POS[S.pos];
+  S.dpos = p.dias;
+  document.getElementById("dpos").value = p.dias;
+  document.getElementById("dposv").textContent = p.dias;
+  render();
+});
+function bindSeg(id, key, cast = v=>v){
+  document.getElementById(id).addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    S[key] = cast(b.dataset.v);
+    [...e.currentTarget.children].forEach(c => c.setAttribute("aria-pressed", String(c === b)));
+    render();
+  });
+}
+bindSeg("carro","carro");
+bindSeg("grupo","grupo", v=>+v);
+["eur","chf"].forEach(id => document.getElementById(id).addEventListener("input", e => {
+  const v = parseFloat(e.target.value);
+  if (v > 0) { S[id] = v; render(); }
+}));
+document.getElementById("reset").addEventListener("click", () => { S = {...DEFAULTS}; apply(); render(); });
+
+function apply(){
+  document.getElementById("pos").value = S.pos;
+  document.getElementById("dpre").value = S.dpre;
+  document.getElementById("dprev").textContent = S.dpre;
+  document.getElementById("dpos").value = S.dpos;
+  document.getElementById("dposv").textContent = S.dpos;
+  document.getElementById("pacote").value = S.pacote;
+  document.getElementById("pacv").textContent = fmt0(S.pacote);
+  document.getElementById("aereo").value = S.aereo;
+  document.getElementById("aerv").textContent = fmt0(S.aereo);
+  document.getElementById("eur").value = S.eur;
+  document.getElementById("chf").value = S.chf;
+  document.getElementById("hotel").value = S.hotel;
+  document.getElementById("hotelv").textContent = fmt0(S.hotel);
+  document.getElementById("diariaF").value = S.diariaF;
+  document.getElementById("diaFv").textContent = fmt0(S.diariaF);
+  document.getElementById("diariaR").value = S.diariaR;
+  document.getElementById("diaRv").textContent = fmt0(S.diariaR);
+  document.getElementById("carroc").value = S.carroC;
+  document.getElementById("carrocv").textContent = fmt0(S.carroC);
+  [...document.getElementById("carro").children].forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === S.carro)));
+  [...document.getElementById("grupo").children].forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.v === S.grupo)));
+}
+function save(){ try { localStorage.setItem("tml27e", JSON.stringify(S)); } catch(e){} }
+function load(){ try { const v = localStorage.getItem("tml27e"); if (v) S = {...DEFAULTS, ...JSON.parse(v)}; } catch(e){} }
+
+// contagem até a venda
+const venda = new Date(2026, 9, 3, 10, 0, 0);
+const dias = Math.max(0, Math.ceil((venda - new Date()) / 86400000));
+document.getElementById("cdays").textContent = dias === 0 ? "É hoje" : dias + (dias === 1 ? " dia" : " dias");
+
+load(); apply(); render();
+</script>
+</body>
+</html>
